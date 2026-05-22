@@ -24,7 +24,7 @@ jobs:
         run: echo "short=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
       - name: Upsert sticky preview comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: preview-url
           message: |
