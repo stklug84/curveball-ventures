@@ -1,0 +1,10 @@
+# Do not add preview HTML files
+CONTRIBUTING.html
+README.html
+
+# VSCodium project settings
+.vscode/
+.code-workspace
+
+# Do not add the nested preview repository
+preview/
