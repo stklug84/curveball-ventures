@@ -1,0 +1,7 @@
+# Default ownership — all paths owned by repo author
+*                       @stklug84
+
+# Workflow files require code-owner review (defense for PAT exposure
+# via PRs that modify workflows that can read PREVIEWS_DEPLOY_TOKEN)
+/.github/workflows/     @stklug84
+/.github/CODEOWNERS     @stklug84

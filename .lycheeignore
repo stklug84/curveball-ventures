@@ -1,0 +1,3 @@
+# Add regex patterns of URLs to skip for the link checker
+# Example:
+# ^https://example\.com

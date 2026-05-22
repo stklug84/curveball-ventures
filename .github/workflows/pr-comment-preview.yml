@@ -1,0 +1,38 @@
+name: PR preview URL comment
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-comment-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compute short SHA
+        id: sha
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: echo "short=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Upsert sticky preview comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: preview-url
+          message: |
+            **Preview deployed:** https://curveball-ventures.info/${{ steps.sha.outputs.short }}/
+
+            | Field  | Value                                     |
+            |--------|-------------------------------------------|
+            | Branch | `${{ github.event.pull_request.head.ref }}` |
+            | Commit | `${{ github.event.pull_request.head.sha }}` |
+
+            _Preview may take ~30s to become available after pushing._

@@ -1,0 +1,30 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "Curveball",
+    "stklug",
+    "Jekyll",
+    "jekyll",
+    "favicon",
+    "lychee",
+    "yamllint",
+    "actionlint",
+    "Dependabot",
+    "CODEOWNERS",
+    "marocchino",
+    "lycheeverse",
+    "raven",
+    "streetsidesoftware",
+    "nojekyll",
+    "baseurl",
+    "gh-pages",
+    "ghec"
+  ],
+  "ignorePaths": [
+    "_site/**",
+    "preview/**",
+    ".git/**",
+    "node_modules/**"
+  ]
+}
