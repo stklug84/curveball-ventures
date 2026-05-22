@@ -80,7 +80,8 @@ jobs:
             --cache
             --max-cache-age 1d
             --accept 200,204,206,301,302,303,307,308
-            --exclude-mail
+            --exclude 'mailto:'
+            --root-dir "$GITHUB_WORKSPACE/_site"
             _site
 
   spell-check:
