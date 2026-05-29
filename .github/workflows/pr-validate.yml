@@ -50,7 +50,7 @@ jobs:
           name: site
           path: _site
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
       - name: Install html-validate
