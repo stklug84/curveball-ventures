@@ -1,3 +1,8 @@
+# Per-commit preview deploy to curveball-ventures.info.
+#
+# Build/stage/prune/publish logic lives in the central reusable workflow:
+#   stklug84/github-workflows/.github/workflows/jekyll-preview-deploy.yml
+# This caller owns the trigger, permissions, concurrency, and secrets.
 name: Deploy per-commit preview to curveball-ventures.info
 
 on:
@@ -12,120 +17,11 @@ concurrency:
   group: preview-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  PREVIEWS_REPO: stklug84/curveball-ventures-previews
-  PREVIEW_DOMAIN: https://curveball-ventures.info
-  KEEP_LAST: 20
-
 jobs:
   preview:
-    runs-on: ubuntu-latest
-    environment: previews
-    steps:
-      - name: Checkout source repo
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Compute short SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
-
-      - name: Override Jekyll config for preview build
-        run: |
-          set -eu
-          if [ ! -f _config.yml ]; then
-            : > _config.yml
-          fi
-          {
-            echo ""
-            echo "# --- preview overrides (runner-local, not committed) ---"
-            echo "baseurl: /${SHORT_SHA}"
-            echo "url: ${PREVIEW_DOMAIN}"
-          } >> _config.yml
-          echo "----- _config.yml after overrides -----"
-          cat _config.yml
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Build with Jekyll (Bundler)
-        env:
-          JEKYLL_ENV: production
-        run: bundle exec jekyll build --source ./ --destination ./_site
-
-      - name: Checkout previews repo
-        uses: actions/checkout@v6
-        with:
-          repository: ${{ env.PREVIEWS_REPO }}
-          token: ${{ secrets.PREVIEWS_DEPLOY_TOKEN }}
-          path: previews
-          fetch-depth: 0
-
-      - name: Stage preview folder
-        run: |
-          set -eu
-          rm -rf "previews/${SHORT_SHA}"
-          mkdir -p "previews/${SHORT_SHA}"
-          cp -R _site/. "previews/${SHORT_SHA}/"
-
-      - name: Prune to last ${{ env.KEEP_LAST }} previews
-        working-directory: previews
-        run: |
-          set -eu
-          KEEP="${KEEP_LAST}"
-          NOW="$(date +%s)"
-          # Collect "<timestamp>\t<dir>" lines for each immediate subdir,
-          # excluding .git and any protected files (which are not dirs anyway).
-          tmpfile="$(mktemp)"
-          for entry in */ ; do
-            dir="${entry%/}"
-            case "$dir" in
-              .git|CNAME|.nojekyll|index.html) continue ;;
-            esac
-            [ -d "$dir" ] || continue
-            ts="$(git log -1 --format=%ct -- "$dir" 2>/dev/null || true)"
-            if [ -z "$ts" ]; then
-              # Not yet committed (this run's freshly staged dir, or other new dir): protect it.
-              ts="$NOW"
-            fi
-            printf '%s\t%s\n' "$ts" "$dir" >> "$tmpfile"
-          done
-
-          total="$(wc -l < "$tmpfile" | tr -d ' ')"
-          echo "Found ${total} preview directories; keeping newest ${KEEP}."
-
-          if [ "$total" -gt "$KEEP" ]; then
-            # Sort by timestamp desc, skip the first KEEP, delete the rest.
-            sort -rn "$tmpfile" | tail -n +"$((KEEP + 1))" | cut -f2- | while IFS= read -r old; do
-              [ -n "$old" ] || continue
-              echo "Pruning: ${old}"
-              rm -rf -- "$old"
-            done
-          fi
-          rm -f "$tmpfile"
-
-      - name: Commit and push preview
-        working-directory: previews
-        run: |
-          set -eu
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-          git commit -m "Preview: ${SHORT_SHA} from ${GITHUB_REF_NAME}"
-          git push
-
-      - name: Summary
-        run: |
-          {
-            echo "### Preview deployed"
-            echo ""
-            echo "- URL: ${PREVIEW_DOMAIN}/${SHORT_SHA}/"
-            echo "- Branch: \`${GITHUB_REF_NAME}\`"
-            echo "- Commit: \`${GITHUB_SHA}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
+    uses: stklug84/github-workflows/.github/workflows/jekyll-preview-deploy.yml@v1
+    with:
+      previews-repo: stklug84/curveball-ventures-previews
+      preview-domain: https://curveball-ventures.info
+    secrets:
+      previews-deploy-token: ${{ secrets.PREVIEWS_DEPLOY_TOKEN }}

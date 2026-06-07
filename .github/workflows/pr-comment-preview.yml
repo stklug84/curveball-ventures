@@ -1,3 +1,8 @@
+# PR preview URL comment.
+#
+# The sticky-comment logic lives in the central reusable workflow:
+#   stklug84/github-workflows/.github/workflows/pr-preview-comment.yml
+# This caller owns the trigger, permissions, and concurrency.
 name: PR preview URL comment
 
 on:
@@ -15,24 +20,6 @@ concurrency:
 
 jobs:
   comment:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Compute short SHA
-        id: sha
-        env:
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: echo "short=${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
-
-      - name: Upsert sticky preview comment
-        uses: marocchino/sticky-pull-request-comment@v3
-        with:
-          header: preview-url
-          message: |
-            **Preview deployed:** https://curveball-ventures.info/${{ steps.sha.outputs.short }}/
-
-            | Field  | Value                                     |
-            |--------|-------------------------------------------|
-            | Branch | `${{ github.event.pull_request.head.ref }}` |
-            | Commit | `${{ github.event.pull_request.head.sha }}` |
-
-            _Preview may take ~30s to become available after pushing._
+    uses: stklug84/github-workflows/.github/workflows/pr-preview-comment.yml@v1
+    with:
+      preview-domain: https://curveball-ventures.info
