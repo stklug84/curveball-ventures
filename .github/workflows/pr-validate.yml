@@ -23,11 +23,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          source: ./
-          destination: ./_site
+          bundler-cache: true
+
+      - name: Build with Jekyll (Bundler)
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --source ./ --destination ./_site
 
       - name: Upload site artifact
         uses: actions/upload-artifact@v7
