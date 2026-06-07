@@ -8,3 +8,10 @@ README.html
 
 # Do not add the nested preview repository
 preview/
+
+# Jekyll / Bundler build artifacts
+_site/
+.jekyll-cache/
+.jekyll-metadata
+vendor/
+.bundle/

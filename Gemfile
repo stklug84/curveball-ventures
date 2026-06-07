@@ -1,10 +1,13 @@
 source 'https://rubygems.org'
 
-# Explicitly add Jekyll so the command is found
-gem 'jekyll'
+# Jekyll 4.x — runs on modern Ruby (3.x). We build with Bundler rather than
+# the github-pages gem so we control the Jekyll/plugin versions directly.
+gem 'jekyll', '~> 4.3'
 
-# Add GitHub Pages support
-gem 'github-pages'
-
-# Required for Ruby 3.0+ (which GitHub Actions uses)
+# Required for `jekyll serve` on Ruby 3.0+ (WEBrick is no longer bundled).
 gem 'webrick'
+
+group :jekyll_plugins do
+  # Add Jekyll plugins here as needed, e.g.:
+  # gem 'jekyll-feed', '~> 0.17'
+end
