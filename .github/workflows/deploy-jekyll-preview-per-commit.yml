@@ -1,7 +1,7 @@
 # Per-commit preview deploy to curveball-ventures.info.
 #
 # Build/stage/prune/publish logic lives in the central reusable workflow:
-#   stklug84/github-workflows/.github/workflows/jekyll/deploy-jekyll-preview.yml
+#   stklug84/github-workflows/.github/workflows/jekyll-deploy-preview.yml
 # This caller owns the trigger, permissions, concurrency, and secrets.
 name: Deploy per-commit preview to curveball-ventures.info
 
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   preview:
-    uses: stklug84/github-workflows/.github/workflows/jekyll/deploy-jekyll-preview.yml@v1
+    uses: stklug84/github-workflows/.github/workflows/jekyll-deploy-preview.yml@v1.2.0
     with:
       previews-repo: stklug84/curveball-ventures-previews
       preview-domain: https://curveball-ventures.info

@@ -1,7 +1,7 @@
 # PR preview URL comment.
 #
 # The sticky-comment logic lives in the central reusable workflow:
-#   stklug84/github-workflows/.github/workflows/misc/pr-preview-comment.yml
+#   stklug84/github-workflows/.github/workflows/misc-pr-preview-comment.yml
 # This caller owns the trigger, permissions, and concurrency.
 name: PR preview comment
 
@@ -20,6 +20,6 @@ concurrency:
 
 jobs:
   comment:
-    uses: stklug84/github-workflows/.github/workflows/misc/pr-preview-comment.yml@v1
+    uses: stklug84/github-workflows/.github/workflows/misc-pr-preview-comment.yml@v1.2.0
     with:
       preview-domain: https://curveball-ventures.info
