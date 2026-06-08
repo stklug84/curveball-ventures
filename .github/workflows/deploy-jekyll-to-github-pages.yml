@@ -1,10 +1,10 @@
 # Production deploy to GitHub Pages.
 #
 # The build/deploy logic lives in the central reusable workflow:
-#   stklug84/github-workflows/.github/workflows/deploy-pages.yml
+#   stklug84/github-workflows/.github/workflows/jekyll/deploy-jekyll-to-github-pages.yml
 # This file is a thin caller: it owns the triggers, permissions, and
 # concurrency, then delegates the actual build (Bundler) and deploy.
-name: Deploy Jekyll with GitHub Pages dependencies preinstalled
+name: Deploy Jekyll to GitHub Pages
 
 on:
   # Runs on pushes targeting the default branch (production deploy)
@@ -28,4 +28,4 @@ concurrency:
 
 jobs:
   deploy:
-    uses: stklug84/github-workflows/.github/workflows/deploy-pages.yml@v1
+    uses: stklug84/github-workflows/.github/workflows/jekyll/deploy-jekyll-to-github-pages.yml@v1
