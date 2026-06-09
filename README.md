@@ -396,16 +396,16 @@ No config file — runs against all workflow files with defaults. Catches shell-
 
 ### Prerequisites
 
-- Ruby ≥ 3.1 with Bundler (only if you want to run Jekyll locally; the CI uses `actions/jekyll-build-pages` which provides Ruby).
+- Ruby ≥ 3.1 with Bundler (only if you want to run Jekyll locally; the CI uses `actions/jekyll-build-pages` which provides its own Ruby and Jekyll).
 - Git.
 
 ### Build the site locally
 
-There is no `Gemfile` checked in (the production build uses GitHub's preinstalled Jekyll image). To preview locally:
+A `Gemfile` is checked in (Jekyll 4.3 + `webrick`, built with Bundler so we control the Jekyll version directly). The CI build uses `actions/jekyll-build-pages` and does not consume this `Gemfile`; it exists for local development. To preview locally:
 
 ```bash
-gem install jekyll
-jekyll serve
+bundle install
+bundle exec jekyll serve
 ```
 
 Open `http://localhost:4000/`.
