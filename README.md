@@ -1,5 +1,9 @@
 # Curveball Ventures
 
+[![Validate Jekyll Pages](https://github.com/stklug84/curveball-ventures/actions/workflows/validate-jekyll-pages.yml/badge.svg)](https://github.com/stklug84/curveball-ventures/actions/workflows/validate-jekyll-pages.yml)
+[![Deploy Jekyll to GitHub Pages](https://github.com/stklug84/curveball-ventures/actions/workflows/deploy-jekyll-to-github-pages.yml/badge.svg)](https://github.com/stklug84/curveball-ventures/actions/workflows/deploy-jekyll-to-github-pages.yml)
+[![Deploy per-commit preview](https://github.com/stklug84/curveball-ventures/actions/workflows/deploy-jekyll-preview-per-commit.yml/badge.svg)](https://github.com/stklug84/curveball-ventures/actions/workflows/deploy-jekyll-preview-per-commit.yml)
+
 Source repository for the production website at **[curveball-ventures.com](https://curveball-ventures.com)** and the per-commit preview site at **[curveball-ventures.info](https://curveball-ventures.info)**.
 
 This README documents the entire deployment architecture, branching model, CI pipeline, and operational runbook. It is intended both as onboarding material for new contributors and as a reference for the repository author.

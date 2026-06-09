@@ -89,7 +89,7 @@ actionlint
 
 ## Spell check
 
-If the spell checker flags a legitimate term (a name, brand, or technical word), add it to the `words` list in [`.cspell.json`](.cspell.json) rather than rewording the content.
+If the spell checker flags a legitimate term (a name, brand, or technical word), add it to the `words` list in `.cspell.json` rather than rewording the content.
 
 ## Adding a new linter
 
