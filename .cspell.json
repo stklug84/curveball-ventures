@@ -28,6 +28,7 @@
     "shellcheck",
     "streetsidesoftware",
     "stklug",
+    "webrick",
     "yamllint"
   ],
   "ignorePaths": [
