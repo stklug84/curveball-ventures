@@ -1,11 +1,13 @@
 ---
 # PR validation.
 #
-# Build + advisory quality checks live in the central reusable workflow:
+# Build + quality checks live in the central reusable workflow:
 #   stklug84/github-workflows/.github/workflows/jekyll-validate-pages.yml
 # This caller owns the trigger, permissions, and concurrency.
 #
-# Branch protection: the required status check is exposed as `validate / build`.
+# As of v1.7.0 every quality check reports real pass/fail status (no
+# continue-on-error). This repo's ruleset does not require them, so they are
+# informational here; `validate / build` is the primary signal.
 name: Validate Jekyll Pages
 
 on:
@@ -22,4 +24,4 @@ concurrency:
 
 jobs:
   validate:
-    uses: stklug84/github-workflows/.github/workflows/jekyll-validate-pages.yml@v1.6.0
+    uses: stklug84/github-workflows/.github/workflows/jekyll-validate-pages.yml@v1.7.0
