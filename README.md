@@ -64,46 +64,43 @@ The previews site also serves a plain top-level `index.html` that **HTTP-200 red
 
 ## Architecture
 
-```
-                  ┌──────────────────────────────────────────────────────┐
-                  │ stklug84/curveball-ventures (this repo)              │
-                  │                                                      │
-                  │  _config.yml, index.html, assets/, CNAME             │
-                  │  .github/workflows/  (thin callers, all @v1.7.0)     │
-                  │    ├── deploy-jekyll-to-github-pages.yml             │
-                  │    ├── deploy-jekyll-preview-per-commit.yml          │
-                  │    ├── validate-jekyll-pages.yml                     │
-                  │    ├── pr-preview-comment.yml                        │
-                  │    └── codeql.yml                                    │
-                  └───────────────┬──────────────────────────────────────┘
-                                  │ uses: stklug84/github-workflows/…@v1.7.0
-                                  ▼
-            ┌──────────────────────┼──────────────────────┬───────────────┐
-            │                      │                      │               │
-   push to main             push to ANY branch    pull_request to main   pull_request +
-            │                      │                      │            push + weekly
-            ▼                      ▼                      ▼               ▼
-  ┌─────────────────┐   ┌────────────────────────┐  ┌──────────────┐ ┌──────────────┐
-  │ jekyll-deploy-  │   │ jekyll-deploy-preview  │  │ jekyll-      │ │ CodeQL       │
-  │ pages           │   │ (baseurl=/<sha>,       │  │ validate-    │ │  ├ actions   │
-  │ ↓ build         │   │  url=…info)            │  │ pages        │ │  └ js/ts     │
-  │ ↓ deploy-pages  │   │ ↓ build                │  │  ├ build     │ │ (no-op until │
-  │ github-pages    │   │ ↓ push to previews repo│  │  ├ html      │ │  JS exists)  │
-  │ environment     │   │ ↓ prune to last 20     │  │  ├ links     │ └──────────────┘
-  │ (approval gate) │   │ ↓                      │  │  ├ spell     │
-  │ ↓               │   │ curveball-ventures.info│  │  ├ yaml      │  misc-pr-preview-
-  │ curveball-      │   │  /<short-sha>/         │  │  ├ actions   │  comment
-  │ ventures.com    │   └────────────────────────┘  │  └ markdown  │   └ sticky comment
-  └─────────────────┘              │                └──────────────┘
-                                   ▼
-                  ┌────────────────────────────────────────────┐
-                  │ stklug84/curveball-ventures-previews       │
-                  │                                            │
-                  │  CNAME → curveball-ventures.info           │
-                  │  .nojekyll                                 │
-                  │  index.html (redirect to .com)             │
-                  │  <short-sha-1>/ … <short-sha-N>/           │
-                  └────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph src["stklug84/curveball-ventures (this repo)"]
+        direction TB
+        srcFiles["_config.yml, index.html, assets/, CNAME"]
+        wf["`.github/workflows/ — thin callers, all @v1.7.0:
+        deploy-jekyll-to-github-pages.yml
+        deploy-jekyll-preview-per-commit.yml
+        validate-jekyll-pages.yml
+        pr-preview-comment.yml
+        codeql.yml`"]
+    end
+
+    src -- "uses: stklug84/github-workflows/…@v1.7.0" --> reusable{{Reusable workflows}}
+
+    reusable -->|push to main| deploy["`jekyll-deploy-pages
+    build → deploy-pages
+    github-pages env (approval gate)`"]
+    reusable -->|push to ANY branch| preview["`jekyll-deploy-preview
+    baseurl=/&lt;sha&gt;, url=…info
+    build → push to previews repo
+    prune to last 20`"]
+    reusable -->|pull_request to main| validate["`jekyll-validate-pages
+    build · html · links
+    spell · yaml · actions · markdown`"]
+    reusable -->|pull_request to main| comment["`misc-pr-preview-comment
+    sticky PR comment`"]
+    reusable -->|"pull_request + push + weekly"| codeql["`CodeQL
+    actions · js/ts
+    (no-op until JS exists)`"]
+
+    deploy --> prod(["curveball-ventures.com"])
+    preview --> previewsRepo["`stklug84/curveball-ventures-previews
+    CNAME → curveball-ventures.info
+    .nojekyll · index.html (redirect to .com)
+    &lt;short-sha-1&gt;/ … &lt;short-sha-N&gt;/`"]
+    previewsRepo --> info(["curveball-ventures.info/&lt;short-sha&gt;/"])
 ```
 
 Every workflow file in this repo is a thin caller. The diagram's middle row names the **reusable workflows** in
