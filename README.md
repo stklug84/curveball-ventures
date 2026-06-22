@@ -298,12 +298,11 @@ Calls `stklug84/github-workflows/.github/workflows/jekyll-validate-pages.yml@v1.
 | `actions-lint` | `actionlint` against `.github/workflows/*.yml`. Catches workflow syntax errors and shellcheck issues in `run:` blocks. |
 | `markdown-lint` | `markdownlint-cli2` against `**/*.md`. |
 
-**Real status, not advisory**
-As of reusable-workflow `v1.7.0` the quality checks dropped `continue-on-error`, so **every check now reports a real
-pass/fail status**. This repo's `Deploy productive` ruleset does **not** list any of them as required status checks (see
-[Governance](#governance-the-deploy-productive-ruleset)), so they are informational gates here — `validate / build` is
-the primary signal — but a red check is now clearly visible on the PR. Promote any of them to required by adding its
-context to the ruleset.
+**Required merge gates**
+As of reusable-workflow `v1.7.0` the quality checks dropped `continue-on-error`, so **every check reports a real
+pass/fail status**. This repo's `Deploy productive` ruleset now lists **all seven `validate / *` contexts** (plus
+`CodeQL` and both `Analyze (...)` legs) as **required status checks** with a strict up-to-date policy, so any red check
+**blocks the merge** (see [Governance](#governance-the-deploy-productive-ruleset)).
 
 ### PR preview comment (`pr-preview-comment.yml`)
 
@@ -440,26 +439,44 @@ In **Settings → General → Pull Requests**:
 the legacy branch-protection UI. Rulesets are the current GitHub mechanism and compose better with org-level policy. The
 ruleset targets the `main` branch and enforces:
 
+This ruleset mirrors the equivalent `Deploy productive` ruleset in `stklug84/skcloud`.
+
 | Rule | Effect |
 |---|---|
-| `pull_request` | Changes can only land on `main` via a pull request. |
+| `pull_request` | Changes can only land on `main` via a pull request (code-owner review required; 0 required approvals). |
 | `creation` / `deletion` | The branch cannot be recreated or deleted out-of-band. |
 | `non_fast_forward` | No force-pushes / history rewrites on `main`. |
 | `required_linear_history` | Merge commits are rejected — squash only (matches repo merge settings). |
 | `required_signatures` | Every commit on `main` must be **signed** (verified GPG/SSH/S-MIME). |
-| `required_deployments` | The `github-pages` environment deployment must succeed — ties the ruleset to the production deploy gate. |
-| `code_scanning` | **CodeQL** results must be clean (`codeql.yml` must pass). |
-| `code_quality` | Code-quality gate must pass. |
+| `required_status_checks` | All ten contexts below must pass (strict: branch must be up to date). |
+| `required_deployments` | The **`previews`** environment deployment must succeed — every PR head must have a published preview. |
+| `code_scanning` | **CodeQL** results must be clean (`high_or_higher` security alerts; `errors_and_warnings`). |
+| `code_quality` | Code-quality gate must pass (severity: warnings). |
+
+**Required status checks** (strict policy — the branch must be up to date before merge):
+
+| Context | Source workflow |
+|---|---|
+| `validate / build` | `validate-jekyll-pages.yml` |
+| `validate / html-validate` | `validate-jekyll-pages.yml` |
+| `validate / link-check` | `validate-jekyll-pages.yml` |
+| `validate / spell-check` | `validate-jekyll-pages.yml` |
+| `validate / yaml-lint` | `validate-jekyll-pages.yml` |
+| `validate / actions-lint` | `validate-jekyll-pages.yml` |
+| `validate / markdown-lint` | `validate-jekyll-pages.yml` |
+| `CodeQL` | `codeql.yml` (aggregate) |
+| `Analyze (actions)` | `codeql.yml` |
+| `Analyze (javascript-typescript)` | `codeql.yml` |
 
 **Notes**
 
-- **No required *status checks* by context.** The ruleset does not pin specific `validate / *` check names, which is why
-  the PR quality checks are informational rather than hard merge gates. Add a `required_status_checks` rule with the
-  desired contexts (e.g. `validate / build`) to promote them.
+- The quality checks are now **hard merge gates**, not advisory. Since reusable-workflow `v1.7.0` they already report
+  real pass/fail status; the ruleset now also requires them, so a red check blocks the merge.
+- **`required_deployments: previews`** means each PR head must produce a successful `previews` environment deployment
+  (from `deploy-jekyll-preview-per-commit.yml`). This is why the preview pipeline must run for **every** contributor —
+  including **Dependabot** (see the [Dependabot](#dependabot) notes under Secrets and environments).
 - **Required signatures** means local commits must be signed (`git config commit.gpgsign true` with a configured signing
   key) or they will be rejected on push to a PR targeting `main`.
-- Because `required_deployments` + `code_scanning` are enforced, a broken production deploy or a failing CodeQL run will
-  block the merge/deploy path even though the lint checks are advisory.
 
 ---
 
@@ -494,6 +511,23 @@ A repository secret is exposed to **every** workflow in the repo. An environment
 declare that environment. Combined with CODEOWNERS protection on `.github/workflows/**` (which requires the author's
 review on any workflow change), this closes the practical exfiltration paths a new contributor would otherwise have
 access to.
+
+### Dependabot
+
+Because the `Deploy productive` ruleset requires the `previews` deployment on every PR head (see
+[Governance](#governance-the-deploy-productive-ruleset)), the preview pipeline must also run for **Dependabot** PRs —
+otherwise grouped Dependabot updates could never satisfy the merge gate.
+
+- **Trigger.** The preview workflow fires on `push: ['**']`, which also matches Dependabot's own branch pushes, so a
+  Dependabot update gets a preview at `curveball-ventures.info/<short-sha>/` like any other branch.
+- **Secret access.** Dependabot-triggered runs use a **restricted token** and can read secrets **only** from the
+  repository's **Dependabot secrets** store — *not* from Actions or environment secrets. `PREVIEWS_DEPLOY_TOKEN` is
+  therefore mirrored into **both** the `previews` environment secret (for ordinary runs) and the **Dependabot** secret
+  store (for Dependabot runs). Keep the two copies in sync when rotating the PAT.
+- **Production deploy.** Dependabot reaches production the normal way — its PR merges to `main`, which triggers
+  `deploy-jekyll-to-github-pages.yml`. A commented-out, opt-in `pull_request` path in that workflow can additionally run
+  a *pre-merge* production deploy scoped to Dependabot PRs; it is disabled by default because the `previews` preview
+  already covers pre-merge review.
 
 ---
 
@@ -735,14 +769,17 @@ GitHub Pages does not allow custom HTTP status codes for arbitrary paths. A real
 an external host. Meta-refresh is functionally equivalent for users and well-understood by search engines, especially
 when paired with `<link rel="canonical">`.
 
-### Why aren't the lint checks required merge gates?
+### Why are the lint checks required merge gates?
 
-The `Deploy productive` ruleset enforces hard gates that matter most for a static site — a PR, signed commits, a clean
-**CodeQL** scan, and a successful production **deployment** — but it deliberately does **not** pin the individual
-`validate / *` lint contexts as `required_status_checks`. A clean build plus those security/deploy gates is the minimum
-signal we trust; lint failures are real but often noisy, and gating every one up front would block legitimate PRs over
-cosmetic issues. Since `v1.7.0` the lint checks report real pass/fail status (no more `continue-on-error`), so a red
-check is clearly visible without blocking. Promote any of them by adding its context to the ruleset's status-checks rule.
+The `Deploy productive` ruleset enforces the full set of gates that matter for a static site — a PR with code-owner
+review, signed commits, a clean **CodeQL** scan, a successful **`previews`** deployment, and **all seven `validate / *`
+lint contexts** — so a red check blocks the merge. Since reusable-workflow `v1.7.0` the lint checks report real
+pass/fail status (no more `continue-on-error`), which is what makes them safe to require. This mirrors the equivalent
+ruleset in `stklug84/skcloud` so the two repos enforce the same bar.
+
+Note that `required_deployments` points at the **`previews`** environment, not `github-pages`: the gate is "this PR head
+published a working preview", which every contributor (including Dependabot) can satisfy before merge. Production
+(`github-pages`) deploys only after the PR merges to `main`.
 
 ### Why is `prefers-color-scheme` dark-mode support inline in the page?
 
