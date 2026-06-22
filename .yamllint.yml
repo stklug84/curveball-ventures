@@ -1,10 +1,21 @@
+---
+# yamllint configuration — shared baseline across stklug84 repos.
+# Maintainer: Steffen Klug <45033201+stklug84@users.noreply.github.com>
 extends: default
 
 rules:
+  # Two-space indentation.
+  indentation:
+    spaces: 2
+  # Over-length is a warning, not an error.
   line-length:
-    max: 200
+    max: 120
     level: warning
-  truthy: disable
-  document-start: disable
+  # GitHub Actions uses a bare `on:` top-level key; without this yamllint
+  # flags it as truthy. Configuring it here removes the need for per-file
+  # `# yamllint disable-line rule:truthy` comments.
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
   comments:
     min-spaces-from-content: 1

@@ -1,3 +1,4 @@
+---
 # Production deploy to GitHub Pages.
 #
 # The build/deploy logic lives in the central reusable workflow:
