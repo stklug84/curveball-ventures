@@ -10,6 +10,14 @@
 #     stklug84/github-workflows/.github/workflows/jekyll-deploy-pages.yml
 #   This file is a thin caller: it owns the triggers, permissions, and
 #   concurrency, then delegates the actual build (Bundler) and deploy.
+#
+#   Dependabot: production deploys normally happen only AFTER a PR merges
+#   to `main` (the `push: [main]` trigger), so grouped Dependabot updates
+#   already reach production once their PR is merged. To additionally run
+#   a production deploy directly on a Dependabot PR (before merge),
+#   uncomment the `pull_request` trigger and the actor guard below. Leave
+#   it commented unless you deliberately want pre-merge production deploys
+#   for Dependabot — `previews` previews already cover pre-merge review.
 # ---
 name: Deploy Jekyll to GitHub Pages
 
@@ -20,6 +28,14 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab (escape hatch)
   workflow_dispatch:
+
+  # --- Dependabot pre-merge production deploy (opt-in; keep commented) ---
+  # Uncomment to also build+deploy to production on Dependabot pull requests
+  # before they merge. The `if:` guard on the job below restricts this path to
+  # Dependabot-authored PRs so ordinary PRs do not trigger production deploys.
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, synchronize, reopened]
 
 # The caller must grant the scopes the reusable workflow needs.
 permissions:
@@ -35,4 +51,12 @@ concurrency:
 
 jobs:
   deploy:
+    # --- Dependabot pre-merge production deploy guard (opt-in) ---
+    # When the `pull_request` trigger above is enabled, restrict pre-merge
+    # production deploys to Dependabot PRs only. Pushes to `main` (post-merge)
+    # and manual dispatches are unaffected because `github.event_name` is not
+    # `pull_request` for them.
+    # if: >-
+    #   github.event_name != 'pull_request' ||
+    #   github.event.pull_request.user.login == 'dependabot[bot]'
     uses: stklug84/github-workflows/.github/workflows/jekyll-deploy-pages.yml@v1.7.0

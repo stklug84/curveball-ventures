@@ -9,10 +9,20 @@
 #   prune/publish logic lives in the central reusable workflow:
 #     stklug84/github-workflows/.github/workflows/jekyll-deploy-preview.yml
 #   This caller owns the trigger, permissions, concurrency, and secrets.
+#
+#   Dependabot: the `push: ['**']` trigger already fires for Dependabot's
+#   own branch pushes, so grouped Dependabot updates also get a preview.
+#   Dependabot-triggered runs use the restricted token and can ONLY read
+#   secrets stored as *Dependabot* secrets — `PREVIEWS_DEPLOY_TOKEN` is
+#   therefore mirrored into Dependabot secrets in addition to the
+#   `previews` environment secret. See README "Dependabot" notes.
 # ---
 name: Deploy per-commit preview to curveball-ventures.info
 
 on:
+  # Human branch pushes AND Dependabot's automatic branch pushes both match
+  # `**`, so every commit — including grouped Dependabot updates — gets a
+  # preview build at curveball-ventures.info/<short-sha>/.
   push:
     branches: ['**']
   workflow_dispatch:
@@ -31,4 +41,7 @@ jobs:
       previews-repo: stklug84/curveball-ventures-previews
       preview-domain: https://curveball-ventures.info
     secrets:
+      # On Dependabot push events this resolves from the *Dependabot* secret
+      # of the same name; on all other pushes it resolves from the `previews`
+      # environment secret. Both are kept in sync.
       previews-deploy-token: ${{ secrets.PREVIEWS_DEPLOY_TOKEN }}
