@@ -36,7 +36,7 @@ concurrency:
 
 jobs:
   preview:
-    uses: stklug84/github-workflows/.github/workflows/jekyll-deploy-preview.yml@v1.7.0
+    uses: stklug84/github-workflows/.github/workflows/jekyll-deploy-preview.yml@v1.17.0
     with:
       previews-repo: stklug84/curveball-ventures-previews
       preview-domain: https://curveball-ventures.info

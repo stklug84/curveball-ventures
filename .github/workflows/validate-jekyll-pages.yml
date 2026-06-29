@@ -31,4 +31,4 @@ concurrency:
 
 jobs:
   validate:
-    uses: stklug84/github-workflows/.github/workflows/jekyll-validate-pages.yml@v1.7.0
+    uses: stklug84/github-workflows/.github/workflows/jekyll-validate-pages.yml@v1.17.0
