@@ -59,4 +59,5 @@ jobs:
     # if: >-
     #   github.event_name != 'pull_request' ||
     #   github.event.pull_request.user.login == 'dependabot[bot]'
-    uses: stklug84/github-workflows/.github/workflows/jekyll-deploy-pages.yml@v1.19.1
+    # yamllint disable-line rule:line-length
+    uses: stklug84/github-workflows/.github/workflows/jekyll-deploy-pages.yml@e099d4771b62e7814a0206424b176b91a1747ecc  # v4.1.0

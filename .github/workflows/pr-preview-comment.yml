@@ -27,6 +27,7 @@ concurrency:
 
 jobs:
   comment:
-    uses: stklug84/github-workflows/.github/workflows/misc-pr-preview-comment.yml@v1.19.1
+    # yamllint disable-line rule:line-length
+    uses: stklug84/github-workflows/.github/workflows/misc-pr-preview-comment.yml@e099d4771b62e7814a0206424b176b91a1747ecc  # v4.1.0
     with:
       preview-domain: https://curveball-ventures.info
